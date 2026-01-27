@@ -94,7 +94,7 @@ class EssaySearchService:
             similarity=similarity
         )
 
-    def search_similar_essays_snowpark(self, query_text, score_level=None, top_k=None):
+    def search_similar_essays_snowpark(self, query_text, score_level=3, top_k=None):
         """Search for similar essays using the modern Snowpark API"""
         if not SNOWPARK_AVAILABLE:
             logging.warning("Snowpark not available, falling back to SQL approach")

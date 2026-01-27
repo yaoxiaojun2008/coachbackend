@@ -147,7 +147,7 @@ class GenerateReadingLessonRequest(BaseModel):
 # Essay Search schemas
 class EssaySearchRequest(BaseModel):
     query_text: str
-    score_level: Optional[int] = None
+    score_level: Optional[int] = 3
     top_k: Optional[int] = 2
 
 class EssaySearchResult(BaseModel):
