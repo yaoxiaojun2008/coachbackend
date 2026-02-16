@@ -25,7 +25,7 @@ POST /api/ai/sample
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query_text` | string | Yes | The essay text to search for similar essays |
-| `score_level` | integer | No | Minimum score level filter (1-6). Only essays with score_level >= this value will be returned |
+| `score_level` | integer | 3 | Minimum score level filter (1-6). Only essays with score_level >= this value will be returned |
 | `top_k` | integer | No | Maximum number of results to return (default: 2) |
 
 ## Response Format

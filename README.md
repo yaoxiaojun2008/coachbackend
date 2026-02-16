@@ -11,8 +11,8 @@ This is the backend API for the Read & Write application, built with FastAPI.
 
 ## Requirements
 
-- Python 3.8+
-- PostgreSQL database
+- Python 3.11
+
 
 ## Setup
 
@@ -60,3 +60,8 @@ The API will be available at `http://localhost:8000`.
 - `POST /api/ai/generate-reading-lesson` - Generate a reading lesson
 - `POST /api/ai/analyze-writing` - Analyze writing and provide feedback
 - `POST /api/ai/full-analyze-writing` - Full writing analysis with multiple aspects
+
+### Deployment in Railway.app
+uvicorn main:app  --reload --host 0.0.0.0 --port $PORT --log-level warning
+create runtime.txt and add a line for python
+python-3.11.9

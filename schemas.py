@@ -141,8 +141,17 @@ class GeneratedLesson(BaseModel):
 
 # Request for generating reading lesson
 class GenerateReadingLessonRequest(BaseModel):
-    level: str
+    level: str = "A2 Intermediate"
     topic: Optional[str] = None
+
+
+# Schema for evaluating reading lesson with user answers
+class EvaluateReadingLessonRequest(BaseModel):
+    article: ArticleContent
+    questions: List[Question]
+    user_answers: List[Dict[str, Any]]  # Contains question_id and selected_answer_id
+    level: str  # User's proficiency level
+
 
 # Essay Search schemas
 class EssaySearchRequest(BaseModel):

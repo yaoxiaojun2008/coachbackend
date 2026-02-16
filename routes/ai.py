@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Use absolute imports for local modules
 import schemas
-from schemas import GenerateReadingLessonRequest, EssaySearchRequest, EssaySearchResponse, EssaySearchResult
+from schemas import GenerateReadingLessonRequest, EssaySearchRequest, EssaySearchResponse, EssaySearchResult, EvaluateReadingLessonRequest
 import auth, database
 
 # Add Snowflake search service
@@ -561,4 +561,71 @@ async def search_similar_essays(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error searching essays: {str(e)}"
+        )
+
+
+@router.post("/evaluate-reading-lesson")
+async def evaluate_reading_lesson(
+    request: EvaluateReadingLessonRequest,
+    current_user: dict = Depends(auth.get_current_active_user)
+):
+    logger.info(f"[DEBUG] Evaluate Reading Lesson API called by user: {current_user.get('email', current_user.get('id', 'unknown'))}")
+    logger.info(f"[DEBUG] Request level: {request.level}")
+    
+    try:
+        # Construct the prompt with the article, questions, and user answers
+        article_content = "\n".join(request.article.content)
+        user_answers_formatted = ""
+        
+        for i, answer in enumerate(request.user_answers):
+            question_id = answer.get("question_id")
+            selected_answer_id = answer.get("selected_answer_id")
+            
+            # Find the corresponding question and selected option
+            question = next((q for q in request.questions if q.id == question_id), None)
+            selected_option = None
+            if question:
+                selected_option = next((opt for opt in question.options if opt.id == selected_answer_id), None)
+            
+            if question and selected_option:
+                user_answers_formatted += f"Q{i+1}: {question.text}\n"
+                user_answers_formatted += f"User Answer: {selected_option.label}. {selected_option.text}\n"
+                user_answers_formatted += f"Correct Answer: {next(opt.text for opt in question.options if opt.id == question.correctId).strip()}\n\n"
+        
+        # Create a prompt for evaluating the reading lesson
+        prompt = f"""
+        Using the article and the learner's answers, act as an English reading coach and provide detailed, actionable suggestions to help improve the learner's reading comprehension, vocabulary development, and overall reading skills.
+        
+        Article Title: {request.article.title}
+        Article Content: {article_content}
+        
+        Learner Level: {request.level}
+        
+        Learner's Answers:
+        {user_answers_formatted}
+        
+        Please provide:
+        1. An assessment of the learner's performance
+        2. Detailed feedback on each answer
+        3. Suggestions for improving reading comprehension
+        4. Vocabulary development recommendations based on the article
+        5. Overall reading skill improvement strategies
+        """
+        
+        logger.info("[DEBUG] Initiating LLM call to evaluate reading lesson...")
+        logger.info(f"[DEBUG] Prompt length: {len(prompt)} characters")
+        
+        # Call DeepSeek API with the constructed prompt
+        text_response = call_deepseek_api(prompt, temperature=0.7)
+        
+        logger.info(f"[DEBUG] LLM call completed. Raw AI response length: {len(text_response)}")
+        logger.info(f"[DEBUG] Raw AI response preview: {text_response[:200]}{'...' if len(text_response) > 200 else ''}")
+        
+        return {"evaluation": text_response}
+        
+    except Exception as e:
+        logger.error(f"[DEBUG] Error evaluating reading lesson: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error evaluating reading lesson: {str(e)}"
         )
